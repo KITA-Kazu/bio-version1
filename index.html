@@ -32,18 +32,26 @@
     }
     header {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       border-bottom: 2px solid #e2e8f0;
       padding-bottom: 10px;
     }
     .status-bar {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       background: #f1f5f9;
       padding: 10px 15px;
       border-radius: 8px;
       font-weight: bold;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
+    }
+    .timer-badge {
+      background: #f59e0b;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 1.1rem;
     }
     .level-badge {
       background: var(--primary-color);
@@ -52,49 +60,62 @@
       border-radius: 4px;
     }
     .question-box {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       font-weight: 600;
-      margin-bottom: 20px;
-      line-height: 1.5;
+      margin-bottom: 15px;
+      line-height: 1.4;
     }
     .options-grid {
       display: grid;
       gap: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
     .btn-option {
       background: #ffffff;
       border: 2px solid #cbd5e1;
-      padding: 12px 16px;
+      padding: 14px 16px;
       border-radius: 8px;
-      font-size: 1rem;
+      font-size: 1.05rem;
       cursor: pointer;
       text-align: left;
       transition: all 0.2s;
     }
     .btn-option:hover { background: #f1f5f9; border-color: var(--primary-color); }
-    .btn-option.correct { background: #dcfce7; border-color: var(--success-color); color: #15803d; }
+    .btn-option.correct { background: #dcfce7; border-color: var(--success-color); color: #15803d; font-weight: bold; }
     .btn-option.incorrect { background: #fee2e2; border-color: var(--danger-color); color: #b91c1c; }
     .explanation-box {
       background: #eff6ff;
       border-left: 4px solid var(--primary-color);
       padding: 12px;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       border-radius: 0 8px 8px 0;
       display: none;
+      font-size: 0.95rem;
     }
     .btn-next, .btn-action {
       width: 100%;
       background: var(--primary-color);
       color: white;
       border: none;
-      padding: 12px;
-      font-size: 1rem;
+      padding: 14px;
+      font-size: 1.1rem;
       font-weight: bold;
       border-radius: 8px;
       cursor: pointer;
     }
     .btn-action { margin-top: 10px; background: #64748b; }
+    
+    /* 巨大スコア表示 */
+    .big-score-container {
+      margin: 30px 0;
+    }
+    .big-score {
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: var(--primary-color);
+      text-shadow: 2px 2px 0px #cbd5e1;
+    }
+
     .hidden { display: none !important; }
   </style>
 </head>
@@ -102,31 +123,43 @@
 
 <div class="app-container">
   <header>
-    <h1>免疫のはたらき 学習クイズ</h1>
+    <h1>免疫のはたらき クイズ</h1>
   </header>
 
+  <!-- ステータス表示欄 -->
   <div id="status-bar" class="status-bar hidden">
-    <div>レベル: <span id="current-level" class="level-badge">1</span></div>
-    <div>ポイント: <span id="total-score">0</span> pt</div>
+    <div>残り時間: <span id="timer" class="timer-badge">90</span> 秒</div>
+    <div>Lv: <span id="current-level" class="level-badge">1</span></div>
+    <div>スコア: <span id="total-score">0</span> pt</div>
   </div>
 
+  <!-- クイズ画面 -->
   <div id="quiz-screen" class="hidden">
     <div id="question-text" class="question-box"></div>
     <div id="options-container" class="options-grid"></div>
     <div id="explanation-text" class="explanation-box"></div>
-    <button id="next-btn" class="btn-next hidden" onclick="nextQuestion()">次の問題へ</button>
   </div>
 
+  <!-- メインメニュー -->
   <div id="menu-screen">
-    <p style="margin-bottom: 20px; text-align: center;">連続正解でレベルUP！間違えた問題は復習モードで確認できます。</p>
-    <button class="btn-next" onclick="startQuiz('normal')">クイズをはじめる</button>
+    <p style="margin-bottom: 20px; text-align: center; line-height: 1.6;">
+      制限時間は<b>90秒</b>！<br>
+      3問連続正解でレベルUP（高得点）！<br>
+      回答を選ぶと自動で次の問題に進みます。
+    </p>
+    <button class="btn-next" onclick="startQuiz('normal')">スタート！</button>
     <button id="review-btn" class="btn-action" onclick="startQuiz('review')">間違えた問題の復習 (<span id="review-count">0</span>問)</button>
   </div>
 
+  <!-- タイムアップ・スコア画面 -->
   <div id="result-screen" class="hidden" style="text-align: center;">
-    <h2>チャレンジ終了！</h2>
-    <p style="font-size: 1.5rem; margin: 20px 0; font-weight: bold;">獲得ポイント: <span id="final-score">0</span> pt</p>
-    <button class="btn-next" onclick="showMenu()">メニューにもどる</button>
+    <h2 id="result-title">タイムアップ！</h2>
+    <div class="big-score-container">
+      <p style="font-size: 1.1rem; color: #64748b; font-weight: bold;">獲得スコア</p>
+      <div id="final-score" class="big-score">0</div>
+      <p style="font-size: 1.2rem; font-weight: bold; margin-top: 5px;">ポイント</p>
+    </div>
+    <button class="btn-next" onclick="showMenu()">もう一度あそぶ</button>
   </div>
 </div>
 
@@ -139,82 +172,89 @@
   let currentIndex = 0;
   let isReviewMode = false;
   let wrongQuestionIds = JSON.parse(localStorage.getItem('immune_quiz_wrong') || '[]');
+  
+  let timeLeft = 90;
+  let timerId = null;
+  let autoNextTimeout = null;
 
   function updateReviewCount() {
     document.getElementById('review-count').innerText = wrongQuestionIds.length;
   }
   updateReviewCount();
 
+  // 超シンプル化した問題データ（全60問）
   const questionBank = {
     level1: [
-      { id: 101, q: "からだの中に侵入した異物を排除して体を守るしくみを何というか？", options: ["免疫", "消化", "呼吸", "循環"], answer: 0, exp: "からだを守る全体的なしくみを免疫と呼びます。" },
-      { id: 102, q: "生まれつき備わっている、異物を大まかに認識して排除する第一段階の免疫を何というか？", options: ["自然免疫", "適応免疫", "体液性免疫", "獲得免疫"], answer: 0, exp: "物理的・化学的防御や食作用は自然免疫に分類されます。" },
-      { id: 103, q: "病原体の侵入を防ぐ一番外側の物理的バリアとなる器官はどこか？", options: ["皮膚", "肝臓", "心臓", "腎臓"], answer: 0, exp: "皮膚の角質層などが物理的に病原体の侵入を防ぎます。" },
-      { id: 104, q: "汗や涙に含まれる、細菌の細胞壁を破壊する酵素はどれか？", options: ["リゾチーム", "アミラーゼ", "ペプシン", "インスリン"], answer: 0, exp: "リゾチームは化学的防御としてはたらく酵素です。" },
-      { id: 105, q: "白血球が病原体を取りこんで分解するはたらきを何というか？", options: ["食作用", "ろ過", "再吸収", "呼吸"], answer: 0, exp: "食細胞が異物を取りこんで分解するはたらきです。" },
-      { id: 106, q: "次のうち、食作用を行う細胞（食細胞）はどれか？", options: ["マクロファージ", "赤血球", "血小板", "骨髄"], answer: 0, exp: "マクロファージや好中球、樹状細胞などが食細胞です。" },
-      { id: 107, q: "異物が侵入した部位が赤く腫れる現象を何というか？", options: ["炎症", "貧血", "凝固", "ろ過"], answer: 0, exp: "血管の拡張と血流の増大によって炎症が起こります。" },
-      { id: 108, q: "自然免疫で処理しきれなかった異物に対してはたらく、特異性の高い免疫を何というか？", options: ["適応免疫（獲得免疫）", "物理的防御", "化学的防御", "食作用"], answer: 0, exp: "リンパ球（T細胞・B細胞）が関与する免疫です。" },
-      { id: 109, q: "リンパ球が特定して攻撃対象とする異物のことを何というか？", options: ["抗原", "抗体", "酵素", "ホルモン"], answer: 0, exp: "リンパ球が特異的に認識する異物を抗原と呼びます。" },
-      { id: 110, q: "B細胞が体液中に分泌する、抗原と結合する物質を何というか？", options: ["抗体", "ワクチン", "血清", "リゾチーム"], answer: 0, exp: "抗体は抗原と特異的に結合（抗原抗体反応）します。" },
-      { id: 111, q: "抗体の正体であるタンパク質を何というか？", options: ["免疫グロブリン", "アルブミン", "フィブリン", "ヘモグロビン"], answer: 0, exp: "抗体は免疫グロブリンというタンパク質でできています。" },
-      { id: 112, q: "T細胞が成熟（分化）する胸の近くの器官はどこか？", options: ["胸腺", "骨髄", "腎臓", "肝臓"], answer: 0, exp: "T細胞のTは胸腺（Thymus）に由来します。" },
-      { id: 113, q: "B細胞が作られ成熟する骨の内部の組織はどこか？", options: ["骨髄", "胸腺", "ひ臓", "リンパ節"], answer: 0, exp: "B細胞のBは骨髄（Bone marrow）に由来します。" },
-      { id: 114, q: "T細胞やB細胞は、血液の成分のうち何の一種か？", options: ["白血球", "赤血球", "血小板", "血しょう"], answer: 0, exp: "リンパ球は白血球の一種です。" },
-      { id: 115, q: "自然免疫にはたらき、感染細胞を直接攻めるリンパ球の略称はどれか？", options: ["NK細胞", "DNA", "ATP", "HIV"], answer: 0, exp: "ナチュラルキラー（NK）細胞のことです。" },
-      { id: 116, q: "樹状細胞などが取りこんだ異物の断片を表面に表示することを何というか？", options: ["抗原提示", "拒絶反応", "予防接種", "炎症"], answer: 0, exp: "抗原提示によって適応免疫がスタートします。" },
-      { id: 117, q: "「抗体」が体液中を出回って抗原を無毒化する免疫を何というか？", options: ["体液性免疫", "細胞性免疫", "自然免疫", "物理的防御"], answer: 0, exp: "B細胞から分泌された抗体が関与する免疫です。" },
-      { id: 118, q: "キラーT細胞などが直接感染細胞などを攻撃する免疫を何というか？", options: ["細胞性免疫", "体液性免疫", "化学的防御", "炎症"], answer: 0, exp: "T細胞が中心となって起こる免疫反応です。" },
-      { id: 119, q: "予防接種の際に体内に投与するものを何というか？", options: ["ワクチン", "血清", "アレルゲン", "ホルモン"], answer: 0, exp: "無毒化または弱毒化した病原体をワクチンと呼びます。" },
-      { id: 120, q: "過去に侵入した抗原を記憶しておく仕組みを何というか？", options: ["免疫記憶", "免疫寛容", "アレルギー", "拒絶反応"], answer: 0, exp: "記憶細胞が作られることで二次応答が可能になります。" }
+      { id: 101, q: "体を病原体から守るしくみを何というか？", options: ["免疫", "呼吸", "消化", "血流"], answer: 0, exp: "体を守るしくみ全体を「免疫」と言います。" },
+      { id: 102, q: "生まれつき備わっている最初の防衛免疫は？", options: ["自然免疫", "適応免疫", "予防接種", "人工免疫"], answer: 0, exp: "最初からはたらくのが「自然免疫」です。" },
+      { id: 103, q: "体の一番外側で病原体を防ぐバリアはどこ？", options: ["皮膚", "心臓", "胃", "血液"], answer: 0, exp: "皮膚が表面で異物をシャットアウトします。" },
+      { id: 104, q: "汗や涙に含まれて細菌を撃退する成分は？", options: ["リゾチーム", "デンプン", "脂肪", "水分"], answer: 0, exp: "リゾチームは細菌を壊す酵素です。" },
+      { id: 105, q: "白血球が病原体を食べて分解する働きは？", options: ["食作用", "消化作用", "光合成", "ろ過"], answer: 0, exp: "パクッと食べる働きを「食作用」と言います。" },
+      { id: 106, q: "病原体をパクパク食べる細胞（食細胞）はどれ？", options: ["マクロファージ", "赤血球", "血小板", "神経細胞"], answer: 0, exp: "マクロファージは代表的な食細胞です。" },
+      { id: 107, q: "異物が侵入した場所が赤く腫れる現象は？", options: ["炎症", "貧血", "骨折", "やけど"], answer: 0, exp: "血流が増えて赤く腫れるのを炎症と言います。" },
+      { id: 108, q: "自然免疫の次に働く、強力で精密な免疫は？", options: ["適応免疫", "物理防御", "化学防御", "原始免疫"], answer: 0, exp: "後から発動する強力な免疫が適応免疫です。" },
+      { id: 109, q: "免疫系が敵（攻撃対象）とみなす異物は？", options: ["抗原", "抗体", "酵素", "栄養"], answer: 0, exp: "撃退すべき敵のことを「抗原」と呼びます。" },
+      { id: 110, q: "B細胞が作って敵に貼り付ける武器は？", options: ["抗体", "毒素", "ホルモン", "赤血球"], answer: 0, exp: "B細胞がつくる武器が「抗体」です。" },
+      { id: 111, q: "抗体の正体であるタンパク質はどれ？", options: ["免疫グロブリン", "コラーゲン", "ヘモグロビン", "ケラチン"], answer: 0, exp: "抗体は免疫グロブリンというタンパク質です。" },
+      { id: 112, q: "T細胞が成長（成熟）する場所はどこ？", options: ["胸腺", "骨", "胃", "腎臓"], answer: 0, exp: "T細胞は胸腺（Thymus）で成長します。" },
+      { id: 113, q: "B細胞が生まれて成長する場所はどこ？", options: ["骨髄", "胸腺", "肝臓", "皮膚"], answer: 0, exp: "B細胞は骨髄（Bone marrow）で成長します。" },
+      { id: 114, q: "T細胞やB細胞は、血液の何グループ？", options: ["白血球", "赤血球", "血小板", "血しょう"], answer: 0, exp: "リンパ球（T細胞・B細胞）は白血球の仲間です。" },
+      { id: 115, q: "がん細胞や感染細胞を直接見つけて倒すリンパ球は？", options: ["NK細胞", "赤血球", "血小板", "大腸菌"], answer: 0, exp: "ナチュラルキラー（NK）細胞のことです。" },
+      { id: 116, q: "敵の情報を味方に教えることを何というか？", options: ["抗原提示", "炎症", "予防接種", "拒絶"], answer: 0, exp: "敵の目印を提示して命令を出します。" },
+      { id: 117, q: "抗体を血中に放出して敵を倒す免疫は？", options: ["体液性免疫", "細胞性免疫", "物理防御", "化学防御"], answer: 0, exp: "体液（血液）に抗体を流すので体液性免疫です。" },
+      { id: 118, q: "T細胞が直接出撃して敵細胞を攻撃する免疫は？", options: ["細胞性免疫", "体液性免疫", "自然免疫", "皮ふバリア"], answer: 0, exp: "細胞どうしが直接戦うので細胞性免疫です。" },
+      { id: 119, q: "病気を予防するために前もって注射するものは？", options: ["ワクチン", "抗生剤", "毒素", "生理食塩水"], answer: 0, exp: "弱めた病原体（ワクチン）で練習させます。" },
+      { id: 120, q: "一度入ってきた敵を記憶しておく仕組みは？", options: ["免疫記憶", "免疫拒絶", "アレルギー", "炎症"], answer: 0, exp: "敵を覚えておく仕組みを免疫記憶と言います。" }
     ],
     level2: [
-      { id: 201, q: "白血球の中で最も数が多く、食作用を行って死ぬと「うみ」になる細胞はどれか？", options: ["好中球", "赤血球", "T細胞", "B細胞"], answer: 0, exp: "好中球は最も数の多い食細胞です。" },
-      { id: 202, q: "病原体を食べてリンパ節へ移動し、T細胞に抗原提示する主な細胞はどれか？", options: ["樹状細胞", "赤血球", "血小板", "形質細胞"], answer: 0, exp: "樹状細胞は抗原提示に特化した食細胞です。" },
-      { id: 203, q: "抗原提示を受け、他のT細胞やB細胞、マクロファージを活性化させる指示役はどれか？", options: ["ヘルパーT細胞", "キラーT細胞", "赤血球", "NK細胞"], answer: 0, exp: "ヘルパーT細胞は適応免疫の司令塔です。" },
-      { id: 204, q: "感染した細胞に取り付き、直接攻撃して死滅させるリンパ球はどれか？", options: ["キラーT細胞", "B細胞", "好中球", "赤血球"], answer: 0, exp: "キラーT細胞は細胞性免疫で感染細胞を直接排除します。" },
-      { id: 205, q: "B細胞が活性化して変化した、抗体を大量に産生・分泌する細胞を何というか？", options: ["形質細胞", "樹状細胞", "記憶細胞", "赤血球"], answer: 0, exp: "形質細胞は抗体産生細胞とも呼ばれます。" },
-      { id: 206, q: "抗体が特定の抗原とだけ強力に結合して無毒化する反応を何というか？", options: ["抗原抗体反応", "拒絶反応", "ろ過作用", "血糖調節"], answer: 0, exp: "抗体は鍵と鍵穴のように特定の抗原と結合します。" },
-      { id: 207, q: "自分の成分に対して免疫が発動しない（攻撃しない）状態を何というか？", options: ["免疫寛容", "免疫記憶", "アレルギー", "二次応答"], answer: 0, exp: "自分に反応するリンパ球が除去されることで保たれます。" },
-      { id: 208, q: "敵の情報を記憶して体内に長期間残り、次の侵入に備える細胞を何というか？", options: ["記憶細胞", "形質細胞", "赤血球", "好中球"], answer: 0, exp: "記憶T細胞や記憶B細胞として体内に残ります。" },
-      { id: 209, q: "気管の内壁などの粘膜で、異物を外へ追い出すために動いている微細構造はどれか？", options: ["繊毛", "絨毛", "鞭毛", "角質"], answer: 0, exp: "繊毛運動によって異物を粘液とともに排除します。" },
-      { id: 210, q: "皮膚の表面が弱酸性に保たれている主な理由として正しいものはどれか？", options: ["細菌や病原体の繁殖を防ぐため", "体温を上げるため", "汗を消すため", "酸素を取り込むため"], answer: 0, exp: "皮脂や汗により弱酸性を保ち、雑菌の繁殖を抑えます。" },
-      { id: 211, q: "ヘルパーT細胞がマクロファージを活性化させると、どういう働きが強まるか？", options: ["食作用", "抗体の分泌", "赤血球の破壊", "骨の形成"], answer: 0, exp: "マクロファージの食作用がより活発になります。" },
-      { id: 212, q: "1つのリンパ球は「何種類の異物（抗原）」を認識できるか？", options: ["1種類のみ", "100種類", "無制限", "すべての異物"], answer: 0, exp: "リンパ球は高い特異性を持ち、1種類しか認識できません。" },
-      { id: 213, q: "NK（ナチュラルキラー）細胞が攻撃対象とするのは主にどんな細胞か？", options: ["感染細胞やがん細胞", "正常な赤血球", "正常な皮膚細胞", "消化器官の細胞"], answer: 0, exp: "異変の起きた自前の細胞を直接認識して攻撃します。" },
-      { id: 214, q: "体液性免疫に直接関わっているリンパ球の組み合わせはどれか？", options: ["B細胞 と ヘルパーT細胞", "キラーT細胞 のみ", "赤血球 と 血小板", "NK細胞 のみ"], answer: 0, exp: "ヘルパーT細胞がB細胞を活性化して体液性免疫が進みます。" },
-      { id: 215, q: "細胞性免疫の中心となって感染細胞を排除するリンパ球はどれか？", options: ["キラーT細胞 と ヘルパーT細胞", "B細胞 と 形質細胞", "赤血球", "血小板"], answer: 0, exp: "T細胞が中心となって直接・間接的に異物を排除します。" },
-      { id: 216, q: "初めて体内に抗原が侵入したときの免疫反応を何というか？", options: ["一次応答", "二次応答", "アレルギー", "拒絶反応"], answer: 0, exp: "初めての抗原に対しては抗体ができるまで時間がかかります。" },
-      { id: 217, q: "同じ抗原が2回目以降に侵入したときの、素早く強い免疫反応を何というか？", options: ["二次応答", "一次応答", "免疫寛容", "炎症"], answer: 0, exp: "記憶細胞が存在するため、速やかに大量の抗体が作られます。" },
-      { id: 218, q: "抗体（免疫グロブリン）の先端にあり、抗原ごとに構造が異なる部位を何というか？", options: ["可変部", "定常部", "H鎖", "L鎖"], answer: 0, exp: "可変部の構造が抗原とぴったり結合します。" },
-      { id: 219, q: "抗体の中で、種類に関わらず構造がほぼ共通している部分を何というか？", options: ["定常部", "可変部", "結合部", "受容体"], answer: 0, exp: "共通した柄の部分を定常部と呼びます。" },
-      { id: 220, q: "自然免疫で食作用を行う代表的な細胞の組み合わせはどれか？", options: ["好中球・マクロファージ・樹状細胞", "赤血球・白血球・血小板", "T細胞・B細胞・NK細胞", "ニューロン・心筋細胞"], answer: 0, exp: "これら3つが主要な食細胞です。" }
+      { id: 201, q: "白血球の中で一番多く、敵を食べると「うみ」になるのは？", options: ["好中球", "赤血球", "T細胞", "B細胞"], answer: 0, exp: "好中球は最前線で戦う数が多い食細胞です。" },
+      { id: 202, q: "敵を食べてリンパ節へ行き、T細胞に命令を仰ぐ細胞は？", options: ["樹状細胞", "赤血球", "血小板", "心筋細胞"], answer: 0, exp: "樹状細胞は報告・連絡が得意な細胞です。" },
+      { id: 203, q: "免疫の司令塔として他の細胞に指示を出す細胞は？", options: ["ヘルパーT細胞", "キラーT細胞", "赤血球", "NK細胞"], answer: 0, exp: "ヘルパーT細胞が免疫の全体指揮をとります。" },
+      { id: 204, q: "感染してしまった自分の細胞を直接壊して倒すのは？", options: ["キラーT細胞", "B細胞", "好中球", "赤血球"], answer: 0, exp: "キラーT細胞は感染細胞を直接倒します。" },
+      { id: 205, q: "B細胞が変身した、抗体大量生産モードの細胞は？", options: ["形質細胞", "樹状細胞", "記憶細胞", "赤血球"], answer: 0, exp: "形質細胞になると抗体をどんどん作ります。" },
+      { id: 206, q: "抗体が特定の敵とピタッとくっついて無毒化するのは？", options: ["抗原抗体反応", "拒絶反応", "ろ過", "アレルギー"], answer: 0, exp: "鍵と鍵穴のようにぴったり結合します。" },
+      { id: 207, q: "自分の体を攻撃しないようになっている安全状態は？", options: ["免疫寛容", "免疫記憶", "アレルギー", "炎症"], answer: 0, exp: "自分を攻撃しない仕組みを免疫寛容と言います。" },
+      { id: 208, q: "敵の情報を覚えて長生きし、次の侵入に備える細胞は？", options: ["記憶細胞", "形質細胞", "赤血球", "好中球"], answer: 0, exp: "記憶細胞（記憶T/B細胞）として残ります。" },
+      { id: 209, q: "気管の表面でパタパタ動いて異物を追い出す毛は？", options: ["繊毛", "まつ毛", "髪の毛", "ひげ"], answer: 0, exp: "繊毛運動で異物を外へ出します。" },
+      { id: 210, q: "皮膚が「弱酸性」に保たれている理由は？", options: ["細菌が増えるのを防ぐため", "体温を上げるため", "汗を消すため", "黒くするため"], answer: 0, exp: "弱酸性にすることで雑菌が育つのを防ぎます。" },
+      { id: 211, q: "ヘルパーT細胞に励まされたマクロファージはどうなる？", options: ["食べる力がパワーアップする", "眠る", "死んでしまう", "赤血球になる"], answer: 0, exp: "食作用がより強力になります。" },
+      { id: 212, q: "1つのリンパ球は何種類の敵（抗原）を覚えられる？", options: ["1種類だけ", "100種類", "無限に覚えられる", "どんな敵でも"], answer: 0, exp: "リンパ球は1種類の敵にしか反応できません。" },
+      { id: 213, q: "NK（ナチュラルキラー）細胞が狙い撃ちするのは？", options: ["がん細胞や感染細胞", "健康な赤血球", "皮膚の細胞", "骨の細胞"], answer: 0, exp: "変形した危険な細胞を直接攻撃します。" },
+      { id: 214, q: "体液性免疫（抗体を作る）にかかわるコンビは？", options: ["B細胞とヘルパーT細胞", "キラーT細胞だけ", "赤血球と血小板", "NK細胞だけ"], answer: 0, exp: "ヘルパーT細胞がB細胞を応援して始まります。" },
+      { id: 215, q: "細胞性免疫（直接倒す）のメイン担当は？", options: ["キラーT細胞とヘルパーT細胞", "B細胞と形質細胞", "赤血球", "血小板"], answer: 0, exp: "T細胞チームが直接現場で戦います。" },
+      { id: 216, q: "生まれて初めてその敵と戦う時の免疫反応は？", options: ["一次応答", "二次応答", "アレルギー", "拒絶反応"], answer: 0, exp: "初めての敵には時間がかかります（一次応答）。" },
+      { id: 217, q: "2回目の侵入で、一瞬で大量の抗体を作って倒すのは？", options: ["二次応答", "一次応答", "免疫寛容", "炎症"], answer: 0, exp: "記憶細胞がいるので素早く倒せます（二次応答）。" },
+      { id: 218, q: "抗体の形（Y字）の先端にある、敵ごとに形が変わる場所は？", options: ["可変部", "定常部", "持ち手", "根元"], answer: 0, exp: "先端の「可変部」が敵の形にフィットします。" },
+      { id: 219, q: "抗体のY字の根元にある、どの抗体でも共通の場所は？", options: ["定常部", "可変部", "フック", "頭部"], answer: 0, exp: "共通している土台部分を定常部と言います。" },
+      { id: 220, q: "パクッと敵を食べる「食細胞」の仲間トリオは？", options: ["好中球・マクロファージ・樹状細胞", "赤血球・白血球・血小板", "T細胞・B細胞・NK細胞", "皮膚・爪・髪"], answer: 0, exp: "この3つが主要なパクパク細胞（食細胞）です。" }
     ],
     level3: [
-      { id: 301, q: "花粉やダニなどに対して免疫が過剰に働き、体に不都合な症状が出ることを何というか？", options: ["アレルギー", "免疫寛容", "日和見感染", "血清療法"], answer: 0, exp: "免疫の過剰反応によって生体に障害が起こる現象です。" },
-      { id: 302, q: "アレルギーを引き起こす原因物質（花粉や食物など）を何というか？", options: ["アレルゲン", "ワクチン", "抗体", "ホルモン"], answer: 0, exp: "アレルギーの原因となる抗原をアレルゲンと呼びます。" },
-      { id: 303, q: "全身性の強いアレルギー反応により、血圧低下など生命に関わる症状を何というか？", options: ["アナフィラキシーショック", "拒絶反応", "日和見感染", "免疫寛容"], answer: 0, exp: "蜂毒や食物などによる重篤な全身性アレルギーです。" },
-      { id: 304, q: "免疫寛容が崩れ、自身の正常な組織を異物とみなして攻撃してしまう病気を何というか？", options: ["自己免疫疾患", "日和見感染", "予防接種", "後天性免疫不全"], answer: 0, exp: "自分の成分に対して免疫が働いてしまう疾患です。" },
-      { id: 305, q: "次のうち、「自己免疫疾患」に分類される病気はどれか？", options: ["関節リウマチ", "エイズ", "インフルエンザ", "破傷風"], answer: 0, exp: "関節リウマチや1型糖尿病は自己免疫疾患です。" },
-      { id: 306, q: "ウイルスによって免疫機能が著しく低下する「後天性免疫不全症候群」の略称はどれか？", options: ["AIDS", "HIV", "COVID-19", "DNA"], answer: 0, exp: "エイズ（AIDS）のことです。" },
-      { id: 307, q: "エイズの原因となるウイルス（ヒト免疫不全ウイルス）の略称はどれか？", options: ["HIV", "AIDS", "NK", "RNA"], answer: 0, exp: "HIVがヘルパーT細胞に感染することで発症します。" },
-      { id: 308, q: "HIVが感染して破壊してしまう、免疫系の中心的な細胞はどれか？", options: ["ヘルパーT細胞", "キラーT細胞", "B細胞", "赤血球"], answer: 0, exp: "司令塔であるヘルパーT細胞が壊され、免疫が不全になります。" },
-      { id: 309, q: "免疫力が低下したとき、健康なら発病しない病原体に感染・発病することを何というか？", options: ["日和見感染", "アレルギー", "拒絶反応", "予防接種"], answer: 0, exp: "免疫力の低下に乗じて病原性の低い菌などに感染することです。" },
-      { id: 310, q: "他人の臓器を移植した際、キラーT細胞などが「非自己」と認識して攻撃する現象はどれか？", options: ["拒絶反応", "アレルギー", "免疫寛容", "血清療法"], answer: 0, exp: "移植片を異物とみなして攻撃・脱落させる反応です。" },
-      { id: 311, q: "臓器移植で拒絶反応が起きるのは、細胞表面の何の型が自分と異なるからか？", options: ["主要組織適合抗原（MHC抗原）", "ABO式血液型", "リゾチームの型", "インスリンの型"], answer: 0, exp: "MHC抗原の型が自分と一致しないと攻撃対象になります。" },
-      { id: 312, q: "マウスAにマウスBの皮膚を移植（1回目：10日で脱落）。1か月後に再びマウスBの皮膚を移植（2回目）した場合どうなるか？", options: ["10日より早く脱落する", "10日より遅く脱落する", "10日で脱落する", "脱落しなくなる"], answer: 0, exp: "記憶細胞による二次応答が起こり、より迅速に攻撃されます。" },
-      { id: 313, q: "問312の実験で、2回目の方が早く脱落した理由はマウスAの体内に何が作られていたからか？", options: ["記憶T細胞", "赤血球", "ワクチン", "ウイルス"], answer: 0, exp: "キラーT細胞などの記憶細胞が形成されているためです。" },
-      { id: 314, q: "予防接種を行った後、同じ病原体が侵入したときに病気にかかりにくくなる理由はどれか？", options: ["記憶細胞が作られ、二次応答で速やかに抗体が作られるから", "皮膚が厚くなるから", "赤血球が増えるから", "胃酸が強くなるから"], answer: 0, exp: "あらかじめ記憶細胞を作っておくことで二次応答を起こさせます。" },
-      { id: 315, q: "ウマなどに作らせた抗体を含む血清を患者に直接注射する「血清療法」のメリットはどれか？", options: ["即効性があり、すぐに毒素を無毒化できる", "一生記憶細胞が残る", "アレルギーが絶対に起きない", "事前に予防できる"], answer: 0, exp: "抗体を直接注入するため、すぐに効果が現れます（即効性）。" },
-      { id: 316, q: "血清療法が実際に用いられる緊急時の例として適切なものはどれか？", options: ["マムシなどのヘビ毒や破傷風の治療", "花粉症の治療", "インフルエンザの予防", "水痘の予防"], answer: 0, exp: "毒素を緊急で無毒化する必要がある際に用いられます。" },
-      { id: 317, q: "抗原を2回注射した時の血中抗体濃度グラフで、1回目（一次応答）と比べた2回目（二次応答）の特徴はどれか？", options: ["抗体量が多く、増加開始が速い", "抗体量が少なく、増加開始が遅い", "1回目と全く同じ形になる", "抗体量がゼロになる"], answer: 0, exp: "二次応答ではより早く、大量の抗体が産生されます。" },
-      { id: 318, q: "抗原Aを過去に注射したマウスに、初めて「抗原B」を注射した。抗原Bに対する反応はどうなるか？", options: ["一次応答と同じようにゆっくり少量作られる", "二次応答のように一瞬で大量に作られる", "抗原Aの抗体が作られる", "全く反応しない"], answer: 0, exp: "抗原Bに対する記憶細胞はないため、一次応答となります。" },
-      { id: 319, q: "体内のリンパ球の働きを強めて、がん細胞を攻撃させる治療法を何というか？", options: ["免疫療法", "血清療法", "予防接種", "物理的防御"], answer: 0, exp: "患者自身の免疫力を高めてがんを治療する方法です。" },
-      { id: 320, q: "体液性免疫と細胞性免疫の最終的な共通のゴール（異物の処理方法）は何か？", options: ["最終的にマクロファージなどの食作用で完全に分解・排除する", "血管を消滅させる", "赤血球を増殖させる", "体温を40度以上に保つ"], answer: 0, exp: "抗体で無毒化された異物や攻撃された死細胞は、食細胞が処理します。" }
+      { id: 301, q: "花粉などに免疫が過剰反応してクシャミ等が出るのは？", options: ["アレルギー", "免疫寛容", "日和見感染", "がん"], answer: 0, exp: "免疫が過剰にはたらいて体に害が出る状態です。" },
+      { id: 302, q: "アレルギーの原因になる物質（花粉や食べ物）は？", options: ["アレルゲン", "ワクチン", "抗体", "酵素"], answer: 0, exp: "アレルギーを起こす敵をアレルゲンと言います。" },
+      { id: 303, q: "ハチ毒などで血圧が下がり命に関わる激しい症状は？", options: ["アナフィラキシーショック", "拒絶反応", "日和見感染", "風邪"], answer: 0, exp: "全身に起こる重篤なアレルギー症状です。" },
+      { id: 304, q: "自分の正常な体を誤って攻撃してしまう病気は？", options: ["自己免疫疾患", "日和見感染", "アレルギー", "インフルエンザ"], answer: 0, exp: "自分を敵と勘違いして攻撃する病気です。" },
+      { id: 305, q: "自己免疫疾患の代表例（自分の関節を攻撃してしまう）は？", options: ["関節リウマチ", "エイズ", "水虫", "骨折"], answer: 0, exp: "関節リウマチや1型糖尿病がこれにあたります。" },
+      { id: 306, q: "免疫が機能しなくなる病気「エイズ」の略称は？", options: ["AIDS", "HIV", "DNA", "ATP"], answer: 0, exp: "後天性免疫不全症候群（AIDS）と言います。" },
+      { id: 307, q: "エイズを引き起こすウイルスの名前は？", options: ["HIV", "AIDS", "NK", "インフルエンザ"], answer: 0, exp: "ヒト免疫不全ウイルス（HIV）です。" },
+      { id: 308, q: "HIVウイルスが真っ先に破壊してしまう大事な細胞は？", options: ["ヘルパーT細胞", "キラーT細胞", "赤血球", "B細胞"], answer: 0, exp: "司令塔（ヘルパーT）が壊されるので免疫が崩壊します。" },
+      { id: 309, q: "免疫が弱った時、普段なら負けない弱小菌に負けるのは？", options: ["日和見感染", "アレルギー", "拒絶反応", "二重感染"], answer: 0, exp: "隙を突かれて感染するのを「日和見感染」と言います。" },
+      { id: 310, q: "他人の臓器を移植した際、免疫が「別人！」と攻撃するのは？", options: ["拒絶反応", "アレルギー", "免疫寛容", "同化反応"], answer: 0, exp: "自分以外の細胞を攻撃して排除しようとします。" },
+      { id: 311, q: "臓器移植で拒絶が起きるのは、細胞の何の型が違うから？", options: ["MHC抗原（主要組織適合抗原）", "血液型", "髪型", "DNAの長さ"], answer: 0, exp: "MHC抗原の型が自分と違うと攻撃されます。" },
+      { id: 312, q: "マウスに他人の皮膚を2回移植した。2回目の脱落スピードは？", options: ["1回目より早く脱落する", "遅くなる", "同じ", "脱落しない"], answer: 0, exp: "記憶細胞がいるため、2回目は超スピードで攻撃します。" },
+      { id: 313, q: "2回目の移植で早く脱落した理由は、体内に何があったから？", options: ["記憶T細胞", "赤血球", "ワクチン", "がん細胞"], answer: 0, exp: "1回目で出来た記憶T細胞が残っていたからです。" },
+      { id: 314, q: "予防接種をすると病気にかかりにくくなる理由は？", options: ["記憶細胞が作られ、二次応答で瞬時に倒せるから", "皮膚が硬くなるから", "血液が増えるから", "体が熱くなるから"], answer: 0, exp: "あらかじめ記憶細胞を作っておくためです。" },
+      { id: 315, q: "他人に作らせた抗体を直接注射する「血清療法」の長所は？", options: ["すぐ効く（即効性がある）", "一生守られる", "痛くない", "安くできる"], answer: 0, exp: "抗体を直接入れるのですぐに敵を倒せます。" },
+      { id: 316, q: "血清療法が使われる、一刻を争う緊急事態はどれ？", options: ["マムシの毒や破傷風", "花粉症", "インフルエンザ予防", "虫刺され"], answer: 0, exp: "ヘビ毒など、命に関わる毒を即消す時に使います。" },
+      { id: 317, q: "抗体を2回注射した時、2回目の抗体の増え方は？", options: ["1回目より「早く」「大量に」増える", "ゆっくり増える", "変わらない", "減る"], answer: 0, exp: "二次応答では「早く・大量に」作られます。" },
+      { id: 318, q: "敵Aを覚えているマウスに、初めて「敵B」を入れたらどうなる？", options: ["敵Bには初めてなのでゆっくり対応する", "一瞬で倒す", "敵Aの抗体を出す", "何もしない"], answer: 0, exp: "敵Bの記憶はないので、またイチからの対応（一次応答）になります。" },
+      { id: 319, q: "自分の免疫力を高めて「がん細胞」を攻撃させる治療法は？", options: ["免疫療法", "血清療法", "予防接種", "物理防御"], answer: 0, exp: "患者の免疫パワーを上げる治療法です。" },
+      { id: 320, q: "免疫で無毒化したり倒したりした敵の「最後の後片付け」をするのは？", options: ["マクロファージ等の食作用", "赤血球", "腎臓", "汗"], answer: 0, exp: "倒された残骸は、最後にパクパク細胞（食細胞）がきれいに掃除します。" }
     ]
   };
 
   function showMenu() {
+    clearInterval(timerId);
+    clearTimeout(autoNextTimeout);
     document.getElementById('status-bar').classList.add('hidden');
     document.getElementById('quiz-screen').classList.add('hidden');
     document.getElementById('result-screen').classList.add('hidden');
@@ -229,6 +269,7 @@
     consecutiveCorrect = 0;
     consecutiveIncorrect = 0;
     currentIndex = 0;
+    timeLeft = 90;
 
     if (isReviewMode) {
       if (wrongQuestionIds.length === 0) {
@@ -248,25 +289,35 @@
 
     updateStatusDisplay();
     showQuestion();
+
+    // 90秒タイマー開始
+    clearInterval(timerId);
+    timerId = setInterval(() => {
+      timeLeft--;
+      document.getElementById('timer').innerText = timeLeft;
+      if (timeLeft <= 0) {
+        endGame("タイムアップ！");
+      }
+    }, 1000);
   }
 
   function prepareQuestionsForLevel(lvl) {
     let pool = [...questionBank[`level${lvl}`]];
     pool.sort(() => Math.random() - 0.5);
-    currentQuestions = pool.slice(0, 10);
+    currentQuestions = pool;
     currentIndex = 0;
   }
 
   function updateStatusDisplay() {
     document.getElementById('current-level').innerText = currentLevel;
     document.getElementById('total-score').innerText = score;
+    document.getElementById('timer').innerText = timeLeft;
   }
 
   function showQuestion() {
     const qData = currentQuestions[currentIndex];
-    document.getElementById('question-text').innerText = `Q${currentIndex + 1}. ${qData.q}`;
+    document.getElementById('question-text').innerText = `Q. ${qData.q}`;
     document.getElementById('explanation-text').style.display = 'none';
-    document.getElementById('next-btn').classList.add('hidden');
 
     const optionsContainer = document.getElementById('options-container');
     optionsContainer.innerHTML = '';
@@ -301,13 +352,13 @@
         localStorage.setItem('immune_quiz_wrong', JSON.stringify(wrongQuestionIds));
       }
 
+      // 3問連続正解でレベルUP
       if (!isReviewMode && consecutiveCorrect >= 3) {
         if (currentLevel < 3) {
           currentLevel++;
           consecutiveCorrect = 0;
-          alert(`3問連続正解！ レベル${currentLevel}にアップしました！`);
           prepareQuestionsForLevel(currentLevel);
-          currentIndex = -1;
+          currentIndex = -1; // 次のnextQuestionで0にする
         }
       }
     } else {
@@ -326,11 +377,11 @@
         localStorage.setItem('immune_quiz_wrong', JSON.stringify(wrongQuestionIds));
       }
 
+      // 3問連続不正解でレベルDOWN
       if (!isReviewMode && consecutiveIncorrect >= 3) {
         if (currentLevel > 1) {
           currentLevel--;
           consecutiveIncorrect = 0;
-          alert(`3問連続不正解... レベル${currentLevel}にダウンしました。`);
           prepareQuestionsForLevel(currentLevel);
           currentIndex = -1;
         }
@@ -339,11 +390,16 @@
 
     updateStatusDisplay();
 
+    // 解説を表示
     const expBox = document.getElementById('explanation-text');
-    expBox.innerText = `【解説】 ${qData.exp}`;
+    expBox.innerText = `${isCorrect ? '⭕ 正解！' : '❌ 残念…'} ${qData.exp}`;
     expBox.style.display = 'block';
 
-    document.getElementById('next-btn').classList.remove('hidden');
+    // ボタンを押さなくても2.5秒後に自動で次の問題へ
+    clearTimeout(autoNextTimeout);
+    autoNextTimeout = setTimeout(() => {
+      nextQuestion();
+    }, 2500);
   }
 
   function nextQuestion() {
@@ -351,11 +407,20 @@
     if (currentIndex < currentQuestions.length) {
       showQuestion();
     } else {
-      document.getElementById('quiz-screen').classList.add('hidden');
-      document.getElementById('status-bar').classList.add('hidden');
-      document.getElementById('result-screen').classList.remove('hidden');
-      document.getElementById('final-score').innerText = score;
+      // 現在のレベルの問題を解ききったら再度シャッフルして継続
+      prepareQuestionsForLevel(currentLevel);
+      showQuestion();
     }
+  }
+
+  function endGame(titleText) {
+    clearInterval(timerId);
+    clearTimeout(autoNextTimeout);
+    document.getElementById('quiz-screen').classList.add('hidden');
+    document.getElementById('status-bar').classList.add('hidden');
+    document.getElementById('result-screen').classList.remove('hidden');
+    document.getElementById('result-title').innerText = titleText;
+    document.getElementById('final-score').innerText = score;
   }
 </script>
 </body>
