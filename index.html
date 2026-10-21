@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>生物基礎「免疫のはたらき」学習アプリ</title>
   <style>
-    /* --- 基本スタイル & デザイン --- */
     :root {
       --primary-color: #3b82f6;
       --success-color: #22c55e;
@@ -14,7 +13,6 @@
       --card-bg: #ffffff;
       --text-color: #1e293b;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -24,7 +22,6 @@
       justify-content: center;
       padding: 20px 10px;
     }
-
     .app-container {
       width: 100%;
       max-width: 600px;
@@ -33,14 +30,12 @@
       box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
       padding: 20px;
     }
-
     header {
       text-align: center;
       margin-bottom: 20px;
       border-bottom: 2px solid #e2e8f0;
       padding-bottom: 10px;
     }
-
     .status-bar {
       display: flex;
       justify-content: space-between;
@@ -50,27 +45,23 @@
       font-weight: bold;
       margin-bottom: 20px;
     }
-
     .level-badge {
       background: var(--primary-color);
       color: white;
       padding: 2px 8px;
       border-radius: 4px;
     }
-
     .question-box {
       font-size: 1.1rem;
       font-weight: 600;
       margin-bottom: 20px;
       line-height: 1.5;
     }
-
     .options-grid {
       display: grid;
       gap: 10px;
       margin-bottom: 20px;
     }
-
     .btn-option {
       background: #ffffff;
       border: 2px solid #cbd5e1;
@@ -81,11 +72,9 @@
       text-align: left;
       transition: all 0.2s;
     }
-
     .btn-option:hover { background: #f1f5f9; border-color: var(--primary-color); }
     .btn-option.correct { background: #dcfce7; border-color: var(--success-color); color: #15803d; }
     .btn-option.incorrect { background: #fee2e2; border-color: var(--danger-color); color: #b91c1c; }
-
     .explanation-box {
       background: #eff6ff;
       border-left: 4px solid var(--primary-color);
@@ -94,7 +83,6 @@
       border-radius: 0 8px 8px 0;
       display: none;
     }
-
     .btn-next, .btn-action {
       width: 100%;
       background: var(--primary-color);
@@ -106,7 +94,6 @@
       border-radius: 8px;
       cursor: pointer;
     }
-
     .btn-action { margin-top: 10px; background: #64748b; }
     .hidden { display: none !important; }
   </style>
@@ -118,13 +105,11 @@
     <h1>免疫のはたらき 学習クイズ</h1>
   </header>
 
-  <!-- ステータス表示欄 -->
   <div id="status-bar" class="status-bar hidden">
     <div>レベル: <span id="current-level" class="level-badge">1</span></div>
     <div>ポイント: <span id="total-score">0</span> pt</div>
   </div>
 
-  <!-- クイズ画面 -->
   <div id="quiz-screen" class="hidden">
     <div id="question-text" class="question-box"></div>
     <div id="options-container" class="options-grid"></div>
@@ -132,14 +117,12 @@
     <button id="next-btn" class="btn-next hidden" onclick="nextQuestion()">次の問題へ</button>
   </div>
 
-  <!-- メインメニュー / リザルト画面 -->
   <div id="menu-screen">
     <p style="margin-bottom: 20px; text-align: center;">連続正解でレベルUP！間違えた問題は復習モードで確認できます。</p>
     <button class="btn-next" onclick="startQuiz('normal')">クイズをはじめる</button>
     <button id="review-btn" class="btn-action" onclick="startQuiz('review')">間違えた問題の復習 (<span id="review-count">0</span>問)</button>
   </div>
 
-  <!-- 終了結果画面 -->
   <div id="result-screen" class="hidden" style="text-align: center;">
     <h2>チャレンジ終了！</h2>
     <p style="font-size: 1.5rem; margin: 20px 0; font-weight: bold;">獲得ポイント: <span id="final-score">0</span> pt</p>
@@ -148,7 +131,6 @@
 </div>
 
 <script>
-  // --- システム管理用変数 ---
   let currentLevel = 1;
   let score = 0;
   let consecutiveCorrect = 0;
@@ -158,14 +140,11 @@
   let isReviewMode = false;
   let wrongQuestionIds = JSON.parse(localStorage.getItem('immune_quiz_wrong') || '[]');
 
-  // メニュー画面の準備
   function updateReviewCount() {
     document.getElementById('review-count').innerText = wrongQuestionIds.length;
   }
   updateReviewCount();
-</script>
 
-// --- 問題データバンク（全60問） ---
   const questionBank = {
     level1: [
       { id: 101, q: "からだの中に侵入した異物を排除して体を守るしくみを何というか？", options: ["免疫", "消化", "呼吸", "循環"], answer: 0, exp: "からだを守る全体的なしくみを免疫と呼びます。" },
@@ -235,7 +214,6 @@
     ]
   };
 
-  // --- クイズ進行制御ロジック ---
   function showMenu() {
     document.getElementById('status-bar').classList.add('hidden');
     document.getElementById('quiz-screen').classList.add('hidden');
@@ -257,11 +235,9 @@
         alert('復習する問題がありません！');
         return;
       }
-      // 間違えた問題を抽出
       let allQuestions = [...questionBank.level1, ...questionBank.level2, ...questionBank.level3];
       currentQuestions = allQuestions.filter(q => wrongQuestionIds.includes(q.id));
     } else {
-      // 通常モード：全レベルから問題セットを作成（レベル1から開始）
       prepareQuestionsForLevel(1);
     }
 
@@ -276,9 +252,8 @@
 
   function prepareQuestionsForLevel(lvl) {
     let pool = [...questionBank[`level${lvl}`]];
-    // ランダムにシャッフル
     pool.sort(() => Math.random() - 0.5);
-    currentQuestions = pool.slice(0, 10); // 10問のセット
+    currentQuestions = pool.slice(0, 10);
     currentIndex = 0;
   }
 
@@ -296,7 +271,6 @@
     const optionsContainer = document.getElementById('options-container');
     optionsContainer.innerHTML = '';
 
-    // 選択肢のシャッフル用インデックス
     let indices = [0, 1, 2, 3];
     indices.sort(() => Math.random() - 0.5);
 
@@ -310,7 +284,6 @@
   }
 
   function checkAnswer(selectedIdx, correctIdx, btn) {
-    // 全ボタンを無効化
     const buttons = document.querySelectorAll('.btn-option');
     buttons.forEach(b => b.disabled = true);
 
@@ -323,25 +296,22 @@
       consecutiveCorrect++;
       consecutiveIncorrect = 0;
 
-      // 復習モードで正解したらリストから除外
       if (isReviewMode) {
         wrongQuestionIds = wrongQuestionIds.filter(id => id !== qData.id);
         localStorage.setItem('immune_quiz_wrong', JSON.stringify(wrongQuestionIds));
       }
 
-      // レベルアップ判定（3問連続正解）
       if (!isReviewMode && consecutiveCorrect >= 3) {
         if (currentLevel < 3) {
           currentLevel++;
           consecutiveCorrect = 0;
           alert(`3問連続正解！ レベル${currentLevel}にアップしました！`);
           prepareQuestionsForLevel(currentLevel);
-          currentIndex = -1; // 次のnextQuestionで0になるよう調整
+          currentIndex = -1;
         }
       }
     } else {
       btn.classList.add('incorrect');
-      // 正解ボタンを強調表示
       buttons.forEach(b => {
         if (b.innerText === qData.options[correctIdx]) {
           b.classList.add('correct');
@@ -351,13 +321,11 @@
       consecutiveIncorrect++;
       consecutiveCorrect = 0;
 
-      // 間違いノートに保存
       if (!wrongQuestionIds.includes(qData.id)) {
         wrongQuestionIds.push(qData.id);
         localStorage.setItem('immune_quiz_wrong', JSON.stringify(wrongQuestionIds));
       }
 
-      // レベルダウン判定（3問連続不正解）
       if (!isReviewMode && consecutiveIncorrect >= 3) {
         if (currentLevel > 1) {
           currentLevel--;
@@ -371,7 +339,6 @@
 
     updateStatusDisplay();
 
-    // 解説表示
     const expBox = document.getElementById('explanation-text');
     expBox.innerText = `【解説】 ${qData.exp}`;
     expBox.style.display = 'block';
@@ -384,7 +351,6 @@
     if (currentIndex < currentQuestions.length) {
       showQuestion();
     } else {
-      // 終了画面
       document.getElementById('quiz-screen').classList.add('hidden');
       document.getElementById('status-bar').classList.add('hidden');
       document.getElementById('result-screen').classList.remove('hidden');
